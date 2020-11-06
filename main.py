@@ -19,6 +19,8 @@ parser.add_argument('-q', '--quiet', help="minimalistic console output.", action
 parser.add_argument('-i', '--ignore', nargs='+', type=str, help="ignore a list of classes.")
 # argparse receiving list of classes with specific IoU (e.g., python main.py --set-class-iou person 0.7)
 parser.add_argument('--set-class-iou', nargs='+', type=str, help="set IoU for a specific class.")
+parser.add_argument('-gt', '--GT_PATH', nargs='+', type=str, help="Ground truth folder path")
+parser.add_argument('-dr', '--DR_PATH', nargs='+', type=str, help="Detection results folder path")
 args = parser.parse_args()
 
 '''
@@ -44,8 +46,10 @@ if args.set_class_iou is not None:
 # make sure that the cwd() is the location of the python script (so that every path makes sense)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-GT_PATH = os.path.join(os.getcwd(), 'input', 'ground-truth')
-DR_PATH = os.path.join(os.getcwd(), 'input', 'detection-results')
+#GT_PATH = os.path.join(os.getcwd(), 'input', 'ground-truth')
+GT_PATH = args.GT_PATH
+#DR_PATH = os.path.join(os.getcwd(), 'input', 'detection-results')
+DR_PATH = args.DR_PATH
 # if there are no images then no animation can be shown
 IMG_PATH = os.path.join(os.getcwd(), 'input', 'images-optional')
 if os.path.exists(IMG_PATH): 
@@ -63,6 +67,7 @@ if not args.no_animation:
         import cv2
         show_animation = True
     except ImportError:
+        print('xxxxxxxxx')
         print("\"opencv-python\" not found, please install to visualize the results.")
         args.no_animation = True
 
@@ -73,6 +78,7 @@ if not args.no_plot:
         import matplotlib.pyplot as plt
         draw_plot = True
     except ImportError:
+        print('xxxxxxxxx')
         print("\"matplotlib\" not found, please install it to get the resulting plots.")
         args.no_plot = True
 
@@ -137,6 +143,7 @@ def is_float_between_0_and_1(value):
         else:
             return False
     except ValueError:
+        print('aaaaaaaaaaaa')
         return False
 
 """
@@ -329,6 +336,7 @@ def draw_plot_func(dictionary, n_classes, window_title, plot_title, x_label, out
         plt.show()
     # close the plot
     plt.close()
+#print('1')
 
 """
  Create a ".temp_files/" and "output/" directory
@@ -340,12 +348,13 @@ output_files_path = "output"
 if os.path.exists(output_files_path): # if it exist already
     # reset the output directory
     shutil.rmtree(output_files_path)
-
+show_animation = False
 os.makedirs(output_files_path)
 if draw_plot:
     os.makedirs(os.path.join(output_files_path, "classes"))
 if show_animation:
     os.makedirs(os.path.join(output_files_path, "images", "detections_one_by_one"))
+#print('2')
 
 """
  ground-truth
@@ -371,7 +380,8 @@ for txt_file in ground_truth_files_list:
     if not os.path.exists(temp_path):
         error_msg = "Error. File not found: {}\n".format(temp_path)
         error_msg += "(You can avoid this error message by running extra/intersect-gt-and-dr.py)"
-        error(error_msg)
+        #error(error_msg)
+        print(error_msg)
     lines_list = file_lines_to_list(txt_file)
     # create ground-truth dictionary
     bounding_boxes = []
@@ -385,6 +395,7 @@ for txt_file in ground_truth_files_list:
             else:
                     class_name, left, top, right, bottom = line.split()
         except ValueError:
+            print('bbbbbbbbbbb')
             error_msg = "Error: File " + txt_file + " in the wrong format.\n"
             error_msg += " Expected: <class_name> <left> <top> <right> <bottom> ['difficult']\n"
             error_msg += " Received: " + line
@@ -421,6 +432,7 @@ for txt_file in ground_truth_files_list:
     gt_files.append(new_temp_file)
     with open(new_temp_file, 'w') as outfile:
         json.dump(bounding_boxes, outfile)
+#print('3')
 
 gt_classes = list(gt_counter_per_class.keys())
 # let's sort the classes alphabetically
@@ -452,6 +464,7 @@ if specific_iou_flagged:
     for num in iou_list:
         if not is_float_between_0_and_1(num):
             error('Error, IoU must be between 0.0 and 1.0. Flag usage:' + error_msg)
+##print('4')
 
 """
  detection-results
@@ -473,12 +486,14 @@ for class_index, class_name in enumerate(gt_classes):
             if not os.path.exists(temp_path):
                 error_msg = "Error. File not found: {}\n".format(temp_path)
                 error_msg += "(You can avoid this error message by running extra/intersect-gt-and-dr.py)"
-                error(error_msg)
+                print(error_msg)
+                #error(error_msg)
         lines = file_lines_to_list(txt_file)
         for line in lines:
             try:
                 tmp_class_name, confidence, left, top, right, bottom = line.split()
             except ValueError:
+                print('cccccccccc')
                 error_msg = "Error: File " + txt_file + " in the wrong format.\n"
                 error_msg += " Expected: <class_name> <confidence> <left> <top> <right> <bottom>\n"
                 error_msg += " Received: " + line
@@ -517,6 +532,7 @@ with open(output_files_path + "/output.txt", 'w') as output_file:
         nd = len(dr_data)
         tp = [0] * nd # creates an array of zeros of size nd
         fp = [0] * nd
+        #print('4.5') 
         for idx, detection in enumerate(dr_data):
             file_id = detection["file_id"]
             if show_animation:
@@ -644,13 +660,16 @@ with open(output_files_path + "/output.txt", 'w') as output_file:
                 cv2.rectangle(img_cumulative,(bb[0],bb[1]),(bb[2],bb[3]),color,2)
                 cv2.putText(img_cumulative, class_name, (bb[0],bb[1] - 5), font, 0.6, color, 1, cv2.LINE_AA)
                 # show image
-                cv2.imshow("Animation", img)
-                cv2.waitKey(20) # show for 20 ms
+                #print('5')
+                #cv2.imshow("Animation", img)
+                #cv2.waitKey(20) # show for 20 ms
+                #print('5.5')
                 # save image to output
                 output_img_path = output_files_path + "/images/detections_one_by_one/" + class_name + "_detection" + str(idx) + ".jpg"
                 cv2.imwrite(output_img_path, img)
                 # save the image with all the objects drawn to it
                 cv2.imwrite(img_cumulative_path, img_cumulative)
+
 
         #print(tp)
         # compute precision/recall
