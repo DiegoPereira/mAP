@@ -47,9 +47,9 @@ if args.set_class_iou is not None:
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #GT_PATH = os.path.join(os.getcwd(), 'input', 'ground-truth')
-GT_PATH = args.GT_PATH
+GT_PATH = args.GT_PATH[0]
 #DR_PATH = os.path.join(os.getcwd(), 'input', 'detection-results')
-DR_PATH = args.DR_PATH
+DR_PATH = args.DR_PATH[0]
 # if there are no images then no animation can be shown
 IMG_PATH = os.path.join(os.getcwd(), 'input', 'images-optional')
 if os.path.exists(IMG_PATH): 
@@ -920,3 +920,6 @@ if draw_plot:
         plot_color,
         ""
         )
+
+with open("/content/results.txt", 'w') as a:
+    a.write("{0:.2f}%/n".format(mAP*100))
